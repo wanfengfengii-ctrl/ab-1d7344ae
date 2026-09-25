@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>深海观测网 · 永久故障电缆归因</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="topbar">
+  <h1>深海观测网 · 永久故障电缆归因</h1>
+  <p class="subtitle">多轮继电器切换读数联合推断：在所有永久故障组合中逐轮计算电源可达性，仅采用与全部读数吻合的最优结论</p>
+</header>
+
+<main>
+  <section class="card" id="draft-card">
+    <div class="card-head">
+      <h2>试验草稿</h2>
+      <div class="head-actions">
+        <button type="button" id="sample-btn" class="btn ghost">载入示例</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="name-input">方案名称</label>
+      <input type="text" id="name-input" placeholder="例如：南海三号环网 9 月维护">
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label for="nodes-input">节点列表（每行一个，5–10 个）</label>
+        <textarea id="nodes-input" rows="6" placeholder="S1&#10;S2&#10;S3"></textarea>
+        <div class="row-actions">
+          <button type="button" id="apply-nodes-btn" class="btn small">应用节点</button>
+          <span class="hint" id="nodes-count"></span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="source-select">唯一电源节点</label>
+        <select id="source-select"></select>
+        <p class="hint">电源节点在每一轮中必然通电；若录入断电读数将导致不存在共同解释。</p>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="section-title">
+        <h3>电缆（6–14 条，按录入顺序编号，修复风险非负）</h3>
+        <span class="hint" id="cables-count"></span>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr><th style="width:3rem">#</th><th>端点 A</th><th>端点 B</th><th style="width:8rem">修复风险</th><th style="width:4rem"></th></tr>
+        </thead>
+        <tbody id="cables-body"></tbody>
+      </table>
+      <button type="button" id="add-cable-btn" class="btn small">＋ 添加电缆</button>
+    </div>
+
+    <div class="field">
+      <div class="section-title">
+        <h3>试验轮次（2–7 轮）</h3>
+        <span class="hint" id="rounds-count"></span>
+      </div>
+      <div id="rounds-container" class="rounds"></div>
+      <button type="button" id="add-round-btn" class="btn small">＋ 添加轮次</button>
+    </div>
+
+    <div class="submit-bar">
+      <button type="button" id="diagnose-btn" class="btn primary">发起归因</button>
+      <span id="dirty-hint" class="dirty-hint hidden">草稿已修改，旧结论已作废，请重新发起归因。</span>
+    </div>
+    <div id="form-error" class="form-error hidden"></div>
+  </section>
+
+  <section id="result-container" class="result-container"></section>
+</main>
+
+<footer class="footer">深海观测网维护决策支持系统 · 永久故障联合归因</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

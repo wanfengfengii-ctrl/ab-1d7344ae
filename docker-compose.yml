@@ -1,0 +1,62 @@
+# 深海观测网永久故障归因 —— Docker Compose
+#
+# 宿主机端口可通过环境变量（或 .env）配置：
+#   WEB_HOST_PORT（默认 8080）、API_HOST_PORT（默认 8000）
+# 例如：WEB_HOST_PORT=18080 API_HOST_PORT=18000 docker compose up -d --build
+#
+# 服务：
+#   web    长期运行的 Web/API 服务，健康检查 /health
+#   api    同构服务，健康检查 /api/health（独立宿主机端口）
+#   verify 一次性验收：构建、代码测试、API 业务冒烟，以退出码报告结果后自行退出
+#          docker compose up --build verify ; docker inspect ... 或查看退出码
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: deep-sea-diagnosis:latest
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: "8000"
+      HEALTH_ROLE: web
+    ports:
+      - "${WEB_HOST_PORT:-8080}:8000"
+    healthcheck:
+      test: ["CMD", "python", "scripts/healthcheck.py", "http://127.0.0.1:8000"]
+      interval: 10s
+      timeout: 4s
+      retries: 5
+      start_period: 6s
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: deep-sea-diagnosis:latest
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: "8000"
+      HEALTH_ROLE: api
+    ports:
+      - "${API_HOST_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "scripts/healthcheck.py", "http://127.0.0.1:8000"]
+      interval: 10s
+      timeout: 4s
+      retries: 5
+      start_period: 6s
+    restart: unless-stopped
+
+  verify:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: deep-sea-diagnosis:latest
+    environment:
+      # 验收脚本在容器内自起服务进行冒烟，与对外服务隔离
+      VERIFY_PORT: "8011"
+    # 一次性服务：pytest + 启动服务 + API 冒烟，完成即退出，退出码即验收结果
+    command: ["python", "scripts/verify.py"]
+    restart: "no"
